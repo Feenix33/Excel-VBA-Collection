@@ -6,6 +6,13 @@ Attribute cmePasteValues.VB_ProcData.VB_Invoke_Func = "V\n14"
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
 End Sub
+Sub cmeFilterToggle()
+Attribute cmeFilterToggle.VB_ProcData.VB_Invoke_Func = "O\n14"
+' Keyboard Shortcut: Ctrl+Shift+O
+    On Error GoTo errorFilterToggle
+    Selection.AutoFilter
+errorFilterToggle:
+End Sub
 Sub cmeNameSheet()
 Attribute cmeNameSheet.VB_ProcData.VB_Invoke_Func = "N\n14"
 ' Keyboard Shortcut: Ctrl+Shift+N
@@ -89,15 +96,18 @@ Attribute cmeAutoLimit.VB_ProcData.VB_Invoke_Func = "L\n14"
     Dim rngOrigCell As Range
          
     Dim myWidth As Integer
-    myWidth = 80
-    myWidth = Int(InputBox("Maximum width", "User Input", 60))
     
     Set rngOrigSelect = Selection
     Set rngOrigCell = ActiveCell
+    On Error GoTo Fini
+    
+    myWidth = 80
+    myWidth = Int(InputBox("Maximum width", "User Input", 60))
     Cells.Select
     ' this part format cells to the top because i like it that way
     With Selection
         .VerticalAlignment = xlTop
+        .WrapText = False ' if not turned off, won't autofit bigger
     End With
 
     Cells.EntireColumn.AutoFit
@@ -332,106 +342,83 @@ Sub SaveBusinessObjectsReport()
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
-Sub SaveAsWithDate()
+Sub SaveJiraReport()
 ' Saves file to a specific filename in a specific directory
     Dim saveDir As String, saveBaseName As String
     Dim savePath As String, saveExt As String
-    Dim saveVer As String
-    Dim bSaved As Boolean
         
-    bSaved = False
-    saveDir = "C:\Users\sg0213341\Documents\"
-    saveBaseName = "Rally.Export."
-    saveVer = InputBox("Base Filename", "File Plus Date")
+    saveDir = "C:\Users\sg0213341\Documents\Exports\"
+    saveBaseName = "Jira.Export."
     saveExt = ".xlsx"
     
-    GoTo Fini
-    Do While Not bSaved
-        savePath = saveDir + saveBaseName + Format(Date, "yyyy.mm.dd") + saveVer + saveExt
-        If Dir(savePath) <> "" Then
-            'file exists, update version
-            If saveVer = "" Then
-                saveVer = "A"
-            Else
-                saveVer = Chr(Asc(saveVer) + 1)    ' fails at Z
-            End If
-        Else
-            ActiveWorkbook.SaveAs savePath, FileFormat:=xlOpenXMLWorkbook
-            bSaved = True
+    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
+End Sub
+Sub SaveAsWithDate()
+' Saves file to a user specified filename in my documents folder
+    Dim saveDir As String, saveBaseName As String
+    Dim savePath As String, saveExt As String
+        
+    'improve by getting the current workbook name
+    'saveDir = "C:\Users\sg0213341\Documents\"
+    saveDir = GetMyDirectory() + "\"
+    Dim strCurrentName As String
+    strCurrentName = StripDate(ActiveWorkbook.Name)
+    saveBaseName = InputBox("Base Filename", "File Plus Date", strCurrentName)
+    saveExt = ".xlsx"
+    
+    On Error GoTo Fini
+    If Len(saveBaseName) = 0 Then
+        GoTo Fini
+    End If
+    If Right(saveBaseName, 1) <> "." Then
+        saveBaseName = saveBaseName + "."
+    End If
+    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
+Fini:
+    'Debug.Print (saveBaseName)
+End Sub
+Function StripDate(inName As String) As String
+    Debug.Print (inName)
+    If Len(inName) < 15 Then 'can't hold the date if too short (date + .xlsx ext)
+        StripDate = inName
+        Exit Function
+    End If
+    Dim btest As Boolean
+    Dim strDate As String
+    
+    strDate = Left(inName, Len(inName) - 5) 'get rid of the ext
+    strDate = Right(strDate, 10)
+    'Debug.Print (strDate)
+    If strDate Like "####?##?##" Then
+        StripDate = Left(inName, Len(inName) - 5 - 10)
+        If Right(StripDate, 1) = "." Then
+            StripDate = Left(StripDate, Len(StripDate) - 1)
         End If
-    Loop
-Fini:
-    Debug.Print (saveVer)
-End Sub
-Sub UseFileDialogOpen()
- 
-    Dim lngCount As Long
- 
-    ' Open the file dialog
-    With Application.FileDialog(msoFileDialogOpen)
-        .AllowMultiSelect = True
-        .Show
- 
-        ' Display paths of each file selected
-        For lngCount = 1 To .SelectedItems.Count
-            MsgBox .SelectedItems(lngCount)
-        Next lngCount
- 
-    End With
-End Sub
-Sub sbVBA_To_Open_Workbook_FileDialog()
-    Dim strFileToOpen As String
-    strFileToOpen = Application.GetOpenFilename(Title:="Please choose a file to open", FileFilter:="Excel Files *.xls* (*.xls*),")
-    If strFileToOpen = False Then
-        MsgBox "No file selected.", vbExclamation, "Sorry!"
-        Exit Sub
+        Exit Function
+    End If
+    'try again for if there is an date letter extension
+    strDate = Left(inName, Len(inName) - 6) 'get rid of the ext plus the date ext
+    strDate = Right(strDate, 10)
+    Debug.Print (strDate)
+    If strDate Like "####?##?##" Then
+        StripDate = Left(inName, Len(inName) - 6 - 10)
+        If Right(StripDate, 1) = "." Then
+            StripDate = Left(StripDate, Len(StripDate) - 1)
+        End If
+        Exit Function
+    End If
+    
+End Function
+Function GetMyDirectory()
+    Dim fDialogue As FileDialog
+    'Set fDialogue = Application.FileDialog(msoFileDialogFilePicker)
+    Set fDialogue = Application.FileDialog(msoFileDialogFolderPicker)
+    
+    'fDialogue.Filters.Add "Excel files", "*.xlsx"
+    'fDialogue.Filters.Add "All files", "*.*"
+    If fDialogue.Show = -1 Then
+       GetMyDirectory = fDialogue.SelectedItems(1)
     Else
-        Workbooks.Open Filename:=strFileToOpen
+       GetMyDirectory = ""
     End If
-End Sub
-Sub ChooseFile()
-    Dim fd As FileDialog
-    Dim strFileToOpen As String
-    Dim strYear As String
-    Dim iPos As Long
-    
-    Application.DisplayAlerts = False
-    Set fd = Application.FileDialog(msoFileDialogSaveAs) 'msoFileDialogFolderPicker) 'msoFileDialogFilePicker) 'msoFileDialogSaveAs)  'msoFileDialogOpen)
-    'get the number of the button chosen
-    Dim FileChosen As Integer
-    FileChosen = fd.Show
-    Application.DisplayAlerts = True
-    If FileChosen <> -1 Then
-        'didn't choose anything (clicked on CANCEL)
-        GoTo Fini:
-        'MsgBox "You chose cancel"
-    End If
-    'display name and path of file chosen
-    strFileToOpen = fd.SelectedItems(1)
-    
-    ' strip off the file ext
-    ' excel file
-    If (InStrRev(strFileToOpen, ".xlsx") > 0) Then
-        strFileToOpen = Left(strFileToOpen, Len(strFileToOpen) - Len(".xlsx"))
-    End If
-    ' csv file
-    If (InStrRev(strFileToOpen, ".csv") > 0) Then
-        strFileToOpen = Left(strFileToOpen, Len(strFileToOpen) - Len(".csv"))
-    End If
-    
-    ' strip off the date if present
-    strYear = Format(Date, "yyyy")
-    strYear = "." + strYear
-    iPos = InStrRev(strFileToOpen, strYear)
-    If (iPos > 0) Then
-        strFileToOpen = Left(strFileToOpen, iPos - 1)
-    End If
-    ' add . to end if not present
-    If (Right(strFileToOpen, 1) <> ".") Then
-        strFileToOpen = strFileToOpen + "."
-    End If
-    
-    Call VersionSave(strFileToOpen)
-    'MsgBox strFileToOpen
-Fini:
-End Sub
+End Function
