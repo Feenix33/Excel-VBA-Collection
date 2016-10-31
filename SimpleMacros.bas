@@ -24,7 +24,21 @@ Attribute cmeNameSheet.VB_ProcData.VB_Invoke_Func = "N\n14"
     On Error GoTo errorNameSheet
     newSheetName = InputBox("Enter the new sheet name", "New Sheet Name", newSheetName)
     
+    If Len(newSheetName) = 0 Then GoTo errorNameSheet
+    newSheetName = ProcessSheetName(newSheetName)
+    If Len(newSheetName) > 0 Then
+        ActiveSheet.Name = newSheetName
+        Exit Sub
+    End If
+    
+errorNameSheet:
+    ActiveSheet.Name = oldSheetName
+End Sub
+Function ProcessSheetName(inputSheetName As String) As String
+    Dim newSheetName As String
     Dim pos As Integer
+    newSheetName = inputSheetName
+    
     pos = InStr(LCase(newSheetName), ">d")
     If pos > 0 Then
        newSheetName = Left(newSheetName, pos - 1) + Format(Date, "yyyy.mm.dd") + Right(newSheetName, Len(newSheetName) - pos - 1)
@@ -55,11 +69,31 @@ Attribute cmeNameSheet.VB_ProcData.VB_Invoke_Func = "N\n14"
        newSheetName = Left(newSheetName, pos - 1) + "Iter" + Right(newSheetName, Len(newSheetName) - pos - 1)
     End If
     
-    ActiveSheet.Name = newSheetName
-    Exit Sub
-errorNameSheet:
-    ActiveSheet.Name = oldSheetName
-End Sub
+    pos = InStr(LCase(newSheetName), ">l")
+    If pos > 0 Then
+       newSheetName = Left(newSheetName, pos - 1) + "Labor" + Right(newSheetName, Len(newSheetName) - pos - 1)
+    End If
+    ProcessSheetName = CheckSheetName(newSheetName)
+End Function
+Function CheckSheetName(newSheetName As String)
+    Dim wks As Worksheet
+    Dim strName As String
+    Dim iSuffix As Integer
+    
+    iSuffix = 65 ' 65 = A
+    CheckSheetName = newSheetName
+RestartCheck:
+    For Each wks In Worksheets
+        strName = wks.Name
+        If CheckSheetName = strName Then
+           CheckSheetName = newSheetName & Chr(iSuffix)
+           iSuffix = iSuffix + 1
+           GoTo RestartCheck
+        End If
+    Next wks
+    
+    'CheckSheetName = newSheetName
+End Function
 Sub cmeWrapToggle()
 Attribute cmeWrapToggle.VB_ProcData.VB_Invoke_Func = "W\n14"
 ' cmeWrapToggle Macro
@@ -92,17 +126,19 @@ Sub cmeAutoLimit()
 Attribute cmeAutoLimit.VB_ProcData.VB_Invoke_Func = "L\n14"
 ' Auto size the cells, but then loop through and limit the width
 ' only makes stuff smaller, doesn't make them bigger
+    Dim myWidth As Integer
+    myWidth = 80
+    myWidth = Int(InputBox("Maximum width", "User Input", 60))
+    cmeAutoLimitProcess (myWidth)
+End Sub
+Sub cmeAutoLimitProcess(myWidth As Integer)
     Dim rngOrigSelect As Range ' reset the original selection
     Dim rngOrigCell As Range
          
-    Dim myWidth As Integer
-    
     Set rngOrigSelect = Selection
     Set rngOrigCell = ActiveCell
     On Error GoTo Fini
     
-    myWidth = 80
-    myWidth = Int(InputBox("Maximum width", "User Input", 60))
     Cells.Select
     ' this part format cells to the top because i like it that way
     With Selection
@@ -261,35 +297,20 @@ Sub SaveRallyExport()
 ' Saves file to a specific filename in a specific directory
     Dim saveDir As String, saveBaseName As String
     Dim savePath As String, saveExt As String
-    Dim saveVer As String
-    Dim bSaved As Boolean
         
-    bSaved = False
     saveDir = "C:\Users\sg0213341\Documents\Rally Exports\"
     saveBaseName = "Rally.Export."
-    saveVer = ""
     saveExt = ".xlsx"
     
-    Do While Not bSaved
-        savePath = saveDir + saveBaseName + Format(Date, "yyyy.mm.dd") + saveVer + saveExt
-        If Dir(savePath) <> "" Then
-            'file exists, update version
-            If saveVer = "" Then
-                saveVer = "A"
-            Else
-                saveVer = Chr(Asc(saveVer) + 1)    ' fails at Z
-            End If
-        Else
-            ActiveWorkbook.SaveAs savePath, FileFormat:=xlOpenXMLWorkbook
-            bSaved = True
-        End If
-    Loop
+    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
 Sub GenericVersionSave(saveDir As String, saveBaseName As String, saveExt As String)
     Dim saveVer As String
     Dim bSaved As Boolean
     Dim savePath As String
     
+    If Right(saveDir, 1) <> "\" Then saveDir = saveDir + "\"
+    If Right(saveBaseName, 1) <> "." Then saveBaseName = saveBaseName + "."
     bSaved = False
     saveVer = ""
     Do While Not bSaved
@@ -335,9 +356,30 @@ Sub SaveBusinessObjectsReport()
 ' Saves file to a specific filename in a specific directory
     Dim saveDir As String, saveBaseName As String
     Dim savePath As String, saveExt As String
-        
+    Dim reportName As String
+    
+    reportName = ActiveWorkbook.Name
+    If Left(reportName, Len("BusObj.")) = "BusObj." Then
+        reportName = Mid(reportName, Len("BusObj.") + 1, 255)
+        If InStr(reportName, ".") > 0 Then
+            reportName = Left(reportName, InStr(reportName, ".") - 1)
+        End If
+    ElseIf InStr(reportName, ".") > 0 Then 'use the part before the dot
+    'guess the first part and remove the date
+        reportName = Left(reportName, InStr(reportName, ".") - 1)
+    Else
+        reportName = "BObj"
+    End If
+    If InStr(reportName, " ") > 0 Then ' check if space in name
+        reportName = Left(reportName, InStr(reportName, " ") - 1)
+    End If
+    saveBaseName = InputBox("Which Report?", "Business Object Save", reportName)
+    If Len(saveBaseName) = 0 Then
+        Exit Sub
+    End If
+    
     saveDir = "C:\Users\sg0213341\Documents\BusObjReports\"
-    saveBaseName = "BusObj.GT01."
+    saveBaseName = "BusObj." + saveBaseName
     saveExt = ".xlsx"
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
@@ -361,6 +403,7 @@ Sub SaveAsWithDate()
     'improve by getting the current workbook name
     'saveDir = "C:\Users\sg0213341\Documents\"
     saveDir = GetMyDirectory() + "\"
+    If Len(saveDir) = 1 Then GoTo Fini
     Dim strCurrentName As String
     strCurrentName = StripDate(ActiveWorkbook.Name)
     saveBaseName = InputBox("Base Filename", "File Plus Date", strCurrentName)
@@ -378,7 +421,6 @@ Fini:
     'Debug.Print (saveBaseName)
 End Sub
 Function StripDate(inName As String) As String
-    Debug.Print (inName)
     If Len(inName) < 15 Then 'can't hold the date if too short (date + .xlsx ext)
         StripDate = inName
         Exit Function
@@ -399,7 +441,7 @@ Function StripDate(inName As String) As String
     'try again for if there is an date letter extension
     strDate = Left(inName, Len(inName) - 6) 'get rid of the ext plus the date ext
     strDate = Right(strDate, 10)
-    Debug.Print (strDate)
+    'Debug.Print (strDate)
     If strDate Like "####?##?##" Then
         StripDate = Left(inName, Len(inName) - 6 - 10)
         If Right(StripDate, 1) = "." Then
@@ -416,9 +458,45 @@ Function GetMyDirectory()
     
     'fDialogue.Filters.Add "Excel files", "*.xlsx"
     'fDialogue.Filters.Add "All files", "*.*"
+    'fDialogue.InitialFileName = "C:\"
+    'Debug.Print ("Path = " + ActiveWorkbook.Path)
+    'Debug.Print ("Cur = " + CurDir())
+    If Len(ActiveWorkbook.Path) = 0 Then
+        fDialogue.InitialFileName = CurDir()
+    Else
+        fDialogue.InitialFileName = ActiveWorkbook.Path
+    End If
     If fDialogue.Show = -1 Then
        GetMyDirectory = fDialogue.SelectedItems(1)
     Else
        GetMyDirectory = ""
     End If
 End Function
+Sub cmeBObjLaborReportPreparation()
+    Dim tbl As ListObject
+    Dim rng As Range
+
+    Sheets("Labor Details").Select
+    Range("B2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Selection.Copy
+    Sheets.Add After:=ActiveSheet
+    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+        :=False, Transpose:=False
+    Range("A1").Select
+    ActiveWorkbook.ActiveSheet.rows(1).Find("Week Ending").Select
+    ActiveCell.EntireColumn.Select
+    Selection.NumberFormat = "dd-mmm-yy"
+    
+    ActiveSheet.Name = ProcessSheetName(">L >D")
+    Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
+    Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
+    tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
+    cmeAutoLimitProcess (60)
+    Range("A1").Select
+    '    PvtTbl.TableStyle2 = "PivotStyleMedium" & Weekday(Date)
+
+End Sub
+
+
