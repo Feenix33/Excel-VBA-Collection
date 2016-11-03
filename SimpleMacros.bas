@@ -498,5 +498,20 @@ Sub cmeBObjLaborReportPreparation()
     '    PvtTbl.TableStyle2 = "PivotStyleMedium" & Weekday(Date)
 
 End Sub
+Sub RallyReportPreparation()
+    Dim tbl As ListObject
+    Dim rng As Range
+    Dim iStyle As Integer
+    
+    Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
+    Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
+    'tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
+    iStyle = Day(Date) Mod 28 '28 styles available
+    If iStyle = 0 Then iStyle = 6 '6 is random
+    tbl.TableStyle = "TableStyleMedium" & Day(Date)
+    Range("A1").Select
+    cmeAutoLimitProcess (60) ' resize the sheet
+    ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
+End Sub
 
 
