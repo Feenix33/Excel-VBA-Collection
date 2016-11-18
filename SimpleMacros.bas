@@ -291,7 +291,7 @@ Sub cmeTableFormat()
     ' format in report format
     PvtTbl.RowAxisLayout xlTabularRow
     ' random fun on the style, changes every day
-    PvtTbl.TableStyle2 = "PivotStyleMedium" & Weekday(Date)
+    PvtTbl.TableStyle2 = cmeMagicPivotStyle '"PivotStyleMedium" & Weekday(Date)
 End Sub
 Sub SaveRallyExport()
 ' Saves file to a specific filename in a specific directory
@@ -475,7 +475,8 @@ End Function
 Sub cmeBObjLaborReportPreparation()
     Dim tbl As ListObject
     Dim rng As Range
-
+    Dim iStyle As Integer
+    
     Sheets("Labor Details").Select
     Range("B2").Select
     Range(Selection, Selection.End(xlDown)).Select
@@ -492,26 +493,69 @@ Sub cmeBObjLaborReportPreparation()
     ActiveSheet.Name = ProcessSheetName(">L >D")
     Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
     Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
-    tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
+    'tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
+'    iStyle = Day(Date) '28 styles available
+'    If iStyle > 28 Then iStyle = iStyle - 28
+'    tbl.TableStyle = "TableStyleMedium" & Day(Date)
+    tbl.TableStyle = cmeMagicTableStyle
     cmeAutoLimitProcess (60)
     Range("A1").Select
-    '    PvtTbl.TableStyle2 = "PivotStyleMedium" & Weekday(Date)
-
 End Sub
+Function cmeMagicTableStyle() As String
+    Dim iStyle As Integer
+    iStyle = Day(Date) '28 styles available
+    If iStyle <= 28 Then
+        cmeMagicTableStyle = "TableStyleMedium" & iStyle
+    Else
+        cmeMagicTableStyle = "TableStyleDark" & (iStyle - 28)
+    End If
+End Function
+Function cmeMagicPivotStyle() As String
+    Dim iStyle As Integer
+    iStyle = Day(Date) '28 styles available
+    If iStyle <= 28 Then
+        cmeMagicPivotStyle = "PivotStyleMedium" & iStyle
+    Else
+        cmeMagicPivotStyle = "PivotStyleDark" & (iStyle - 28)
+    End If
+End Function
 Sub RallyReportPreparation()
     Dim tbl As ListObject
     Dim rng As Range
-    Dim iStyle As Integer
     
     Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
     Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
-    'tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
-    iStyle = Day(Date) Mod 28 '28 styles available
-    If iStyle = 0 Then iStyle = 6 '6 is random
-    tbl.TableStyle = "TableStyleMedium" & Day(Date)
+
+    ' cme magic table formatter
+    tbl.TableStyle = cmeMagicTableStyle
+    
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
     ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
 End Sub
-
+Sub cmeWIPTable()
+    Dim objtable As PivotTable
+    Dim objfield As PivotField
+    
+    ActiveSheet.Range("b2").Select
+    Set objtable = ActiveSheet.PivotTableWizard
+    
+    Set objfield = objtable.PivotFields("Schedule State")
+    objfield.Orientation = xlColumnField
+    
+    Set objfield = objtable.PivotFields("Project")
+    objfield.Orientation = xlRowField
+    
+    Set objfield = objtable.PivotFields("Plan Estimate")
+    objfield.Orientation = xlDataField
+    objfield.Function = xlSum
+    
+    Set objfield = objtable.PivotFields("Plan Estimate")
+    objfield.Orientation = xlPageField
+    objfield.PivotItems("0").Visible = False
+    objfield.PivotItems("(blank)").Visible = False
+    objtable.TableStyle2 = cmeMagicPivotStyle ' "PivotStyleMedium" & Weekday(Date)
+    
+    ActiveSheet.Name = ProcessSheetName(">P WIP") ' name the sheet Pivot WIP
+End Sub
 
