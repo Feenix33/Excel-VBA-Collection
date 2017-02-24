@@ -1,20 +1,21 @@
-Attribute VB_Name = "SimpleMacros"
 Option Explicit
 Sub cmePasteValues()
-Attribute cmePasteValues.VB_ProcData.VB_Invoke_Func = "V\n14"
 ' Keyboard Shortcut: Ctrl+Shift+V
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
 End Sub
+Sub cmeFilterOnValue()
+    If Selection.rows.Count > 1 Then Exit Sub
+    If Selection.Columns.Count > 1 Then Exit Sub
+    Range(ActiveCell.CurrentRegion.Address).AutoFilter Field:=ActiveCell.Column, Criteria1:=ActiveCell.Value
+End Sub
 Sub cmeFilterToggle()
-Attribute cmeFilterToggle.VB_ProcData.VB_Invoke_Func = "O\n14"
 ' Keyboard Shortcut: Ctrl+Shift+O
     On Error GoTo errorFilterToggle
     Selection.AutoFilter
 errorFilterToggle:
 End Sub
 Sub cmeNameSheet()
-Attribute cmeNameSheet.VB_ProcData.VB_Invoke_Func = "N\n14"
 ' Keyboard Shortcut: Ctrl+Shift+N
     Dim newSheetName As String
     Dim oldSheetName As String
@@ -95,13 +96,11 @@ RestartCheck:
     'CheckSheetName = newSheetName
 End Function
 Sub cmeWrapToggle()
-Attribute cmeWrapToggle.VB_ProcData.VB_Invoke_Func = "W\n14"
 ' cmeWrapToggle Macro
 ' Keyboard Shortcut: Ctrl+Shift+W
     Selection.WrapText = Not Selection.Cells(1, 1).WrapText
 End Sub
 Sub cmdAutoSize()
-Attribute cmdAutoSize.VB_ProcData.VB_Invoke_Func = "j\n14"
 ' cmdAutoSize Macro
 ' Keyboard Shortcut: Ctrl+Shift+J
     Dim rngOrigSelect As Range
@@ -123,13 +122,14 @@ Sub UsedRange_Example_Column()
     MsgBox LastColumn
 End Sub
 Sub cmeAutoLimit()
-Attribute cmeAutoLimit.VB_ProcData.VB_Invoke_Func = "L\n14"
 ' Auto size the cells, but then loop through and limit the width
 ' only makes stuff smaller, doesn't make them bigger
     Dim myWidth As Integer
+    On Error GoTo Fini
     myWidth = 80
     myWidth = Int(InputBox("Maximum width", "User Input", 60))
     cmeAutoLimitProcess (myWidth)
+Fini:
 End Sub
 Sub cmeAutoLimitProcess(myWidth As Integer)
     Dim rngOrigSelect As Range ' reset the original selection
@@ -170,7 +170,6 @@ Fini:
     rngOrigCell.Activate
 End Sub
 Sub cmeFreeze()
-Attribute cmeFreeze.VB_ProcData.VB_Invoke_Func = "F\n14"
 '
 ' cmeFreeze Macro
 '
@@ -223,7 +222,6 @@ AnyPFs = False
 
 End Sub
 Sub combinationFilter()
-Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
     Dim cell As Range, tableObj As ListObject, subSelection As Range
     Dim filterCriteria() As String, filterFields() As Integer
     Dim i As Integer
@@ -249,7 +247,7 @@ Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
         
         With tableObj.Range
             For i = 1 To UBound(filterCriteria)
-                .AutoFilter field:=filterFields(i), Criteria1:=filterCriteria(i)
+                .AutoFilter Field:=filterFields(i), Criteria1:=filterCriteria(i)
             Next i
         End With
         Set tableObj = Nothing
@@ -395,6 +393,7 @@ Sub SaveJiraReport()
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
+
 Sub SaveAsWithDate()
 ' Saves file to a user specified filename in my documents folder
     Dim saveDir As String, saveBaseName As String
@@ -534,28 +533,27 @@ Sub RallyReportPreparation()
     ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
 End Sub
 Sub cmeWIPTable()
-    Dim objtable As PivotTable
+    Dim objTable As PivotTable
     Dim objfield As PivotField
     
     ActiveSheet.Range("b2").Select
-    Set objtable = ActiveSheet.PivotTableWizard
+    Set objTable = ActiveSheet.PivotTableWizard
     
-    Set objfield = objtable.PivotFields("Schedule State")
+    Set objfield = objTable.PivotFields("Schedule State")
     objfield.Orientation = xlColumnField
     
-    Set objfield = objtable.PivotFields("Project")
+    Set objfield = objTable.PivotFields("Project")
     objfield.Orientation = xlRowField
     
-    Set objfield = objtable.PivotFields("Plan Estimate")
+    Set objfield = objTable.PivotFields("Plan Estimate")
     objfield.Orientation = xlDataField
     objfield.Function = xlSum
     
-    Set objfield = objtable.PivotFields("Plan Estimate")
+    Set objfield = objTable.PivotFields("Plan Estimate")
     objfield.Orientation = xlPageField
     objfield.PivotItems("0").Visible = False
     objfield.PivotItems("(blank)").Visible = False
-    objtable.TableStyle2 = cmeMagicPivotStyle ' "PivotStyleMedium" & Weekday(Date)
+    objTable.TableStyle2 = cmeMagicPivotStyle ' "PivotStyleMedium" & Weekday(Date)
     
     ActiveSheet.Name = ProcessSheetName(">P WIP") ' name the sheet Pivot WIP
 End Sub
-
