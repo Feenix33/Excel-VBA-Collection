@@ -1,4 +1,6 @@
+Attribute VB_Name = "QlikView"
 Sub cmePrepQView()
+Attribute cmePrepQView.VB_ProcData.VB_Invoke_Func = " \n14"
 ' cmePrepQView Macro
     rows("2:2").Select
     Selection.Delete Shift:=xlUp
@@ -6,6 +8,7 @@ Sub cmePrepQView()
     cmeTextColumnToNumber ("Standard Hours")
     cmeTextColumnToNumber ("Overtime Hours")
     cmeTextColumnToDate ("Weekend")
+    cmeTextColumnToNumber ("Approval Date")
     
     Range("A1").Select
     Range(Selection, Selection.End(xlToRight)).Select
@@ -16,6 +19,7 @@ Sub cmePrepQView()
     objTable.TableStyle = cmeMagicTableStyle
     'Format again because the above clears our the date
     cmeFormatAsDate ("Weekend")
+    cmeFormatAsDate ("Approval Date")
     Range("A1").Select
 End Sub
 
@@ -58,7 +62,9 @@ Sub SaveQlikviewReport()
     saveDir = "C:\Users\sg0213341\Documents\QlikView Reports\"
     strCurrentName = StripDate(ActiveWorkbook.Name)
     saveBaseName = InputBox("Base Filename", "File Plus Date", strCurrentName)
-    saveBaseName = "QV." + saveBaseName
+    If Left(saveBaseName, 3) <> "QV." Then
+        saveBaseName = "QV." + saveBaseName
+    End If
     saveExt = ".xlsx"
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
