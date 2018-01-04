@@ -1,21 +1,26 @@
+Attribute VB_Name = "SimpleMacros"
 Option Explicit
 Sub cmePasteValues()
+Attribute cmePasteValues.VB_ProcData.VB_Invoke_Func = "V\n14"
 ' Keyboard Shortcut: Ctrl+Shift+V
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
 End Sub
 Sub cmeFilterOnValue()
+Attribute cmeFilterOnValue.VB_ProcData.VB_Invoke_Func = "l\n14"
     If Selection.rows.Count > 1 Then Exit Sub
     If Selection.Columns.Count > 1 Then Exit Sub
     Range(ActiveCell.CurrentRegion.Address).AutoFilter Field:=ActiveCell.Column, Criteria1:=ActiveCell.Value
 End Sub
 Sub cmeFilterToggle()
+Attribute cmeFilterToggle.VB_ProcData.VB_Invoke_Func = "O\n14"
 ' Keyboard Shortcut: Ctrl+Shift+O
     On Error GoTo errorFilterToggle
     Selection.AutoFilter
 errorFilterToggle:
 End Sub
 Sub cmeNameSheet()
+Attribute cmeNameSheet.VB_ProcData.VB_Invoke_Func = "N\n14"
 ' Keyboard Shortcut: Ctrl+Shift+N
     Dim newSheetName As String
     Dim oldSheetName As String
@@ -70,10 +75,27 @@ Function ProcessSheetName(inputSheetName As String) As String
        newSheetName = Left(newSheetName, pos - 1) + "Iter" + Right(newSheetName, Len(newSheetName) - pos - 1)
     End If
     
+    pos = InStr(LCase(newSheetName), ">lh")
+    If pos > 0 Then
+       newSheetName = Left(newSheetName, pos - 1) + "Labor Hours" + Right(newSheetName, Len(newSheetName) - pos - 2)
+    End If
+    
     pos = InStr(LCase(newSheetName), ">l")
     If pos > 0 Then
        newSheetName = Left(newSheetName, pos - 1) + "Labor" + Right(newSheetName, Len(newSheetName) - pos - 1)
     End If
+    
+    pos = InStr(LCase(newSheetName), ">and")
+    If pos > 0 Then
+       newSheetName = Left(newSheetName, pos - 1) + "Analysis >d" + Right(newSheetName, Len(newSheetName) - pos - 3)
+       newSheetName = ProcessSheetName(newSheetName)
+    End If
+    
+    pos = InStr(LCase(newSheetName), ">an")
+    If pos > 0 Then
+       newSheetName = Left(newSheetName, pos - 1) + "Analysis" + Right(newSheetName, Len(newSheetName) - pos - 2)
+    End If
+    
     ProcessSheetName = CheckSheetName(newSheetName)
 End Function
 Function CheckSheetName(newSheetName As String)
@@ -96,11 +118,13 @@ RestartCheck:
     'CheckSheetName = newSheetName
 End Function
 Sub cmeWrapToggle()
+Attribute cmeWrapToggle.VB_ProcData.VB_Invoke_Func = "W\n14"
 ' cmeWrapToggle Macro
 ' Keyboard Shortcut: Ctrl+Shift+W
     Selection.WrapText = Not Selection.Cells(1, 1).WrapText
 End Sub
 Sub cmdAutoSize()
+Attribute cmdAutoSize.VB_ProcData.VB_Invoke_Func = "j\n14"
 ' cmdAutoSize Macro
 ' Keyboard Shortcut: Ctrl+Shift+J
     Dim rngOrigSelect As Range
@@ -122,6 +146,7 @@ Sub UsedRange_Example_Column()
     MsgBox LastColumn
 End Sub
 Sub cmeAutoLimit()
+Attribute cmeAutoLimit.VB_ProcData.VB_Invoke_Func = "L\n14"
 ' Auto size the cells, but then loop through and limit the width
 ' only makes stuff smaller, doesn't make them bigger
     Dim myWidth As Integer
@@ -170,6 +195,7 @@ Fini:
     rngOrigCell.Activate
 End Sub
 Sub cmeFreeze()
+Attribute cmeFreeze.VB_ProcData.VB_Invoke_Func = "F\n14"
 '
 ' cmeFreeze Macro
 '
@@ -222,6 +248,7 @@ AnyPFs = False
 
 End Sub
 Sub combinationFilter()
+Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
     Dim cell As Range, tableObj As ListObject, subSelection As Range
     Dim filterCriteria() As String, filterFields() As Integer
     Dim i As Integer
@@ -302,6 +329,17 @@ Sub SaveRallyExport()
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
+Sub SaveRallyLGSExport()
+' Saves file to a specific filename in a specific directory
+    Dim saveDir As String, saveBaseName As String
+    Dim savePath As String, saveExt As String
+        
+    saveDir = "C:\Users\sg0213341\Documents\Rally LGS\"
+    saveBaseName = "RallyLGS.Export."
+    saveExt = ".xlsx"
+    
+    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
+End Sub
 Sub GenericVersionSave(saveDir As String, saveBaseName As String, saveExt As String)
     Dim saveVer As String
     Dim bSaved As Boolean
@@ -309,10 +347,18 @@ Sub GenericVersionSave(saveDir As String, saveBaseName As String, saveExt As Str
     
     If Right(saveDir, 1) <> "\" Then saveDir = saveDir + "\"
     If Right(saveBaseName, 1) <> "." Then saveBaseName = saveBaseName + "."
+    Call RevisionVersionSave(saveDir + saveBaseName + Format(Date, "yyyy.mm.dd"), saveExt)
+End Sub
+Sub RevisionVersionSave(saveFile As String, saveExt As String)
+    'pass in a base filename w/path and the ext and auto add the letter
+     Dim saveVer As String
+    Dim savePath As String
+    Dim bSaved As Boolean
+    
     bSaved = False
     saveVer = ""
     Do While Not bSaved
-        savePath = saveDir + saveBaseName + Format(Date, "yyyy.mm.dd") + saveVer + saveExt
+        savePath = saveFile + saveVer + saveExt
         If Dir(savePath) <> "" Then
             'file exists, update version
             If saveVer = "" Then
@@ -326,30 +372,42 @@ Sub GenericVersionSave(saveDir As String, saveBaseName As String, saveExt As Str
         End If
     Loop
 End Sub
-Sub VersionSave(savePathFile As String)
-    Dim saveVer As String
-    Dim bSaved As Boolean
-    Dim savePath As String
+Sub UpdateRev()
+    Dim saveDir As String
+    Dim saveBaseName As String
     Dim saveExt As String
     
+    On Error GoTo Fini
+    saveDir = ActiveWorkbook.Path
+    saveBaseName = StripRev(ActiveWorkbook.Name)
     saveExt = ".xlsx"
-    bSaved = False
-    saveVer = ""
-    Do While Not bSaved
-        savePath = savePathFile + Format(Date, "yyyy.mm.dd") + saveVer + saveExt
-        If Dir(savePath) <> "" Then
-            'file exists, update version
-            If saveVer = "" Then
-                saveVer = "A"
-            Else
-                saveVer = Chr(Asc(saveVer) + 1)    ' fails at Z
-            End If
-        Else
-            ActiveWorkbook.SaveAs savePath, FileFormat:=xlOpenXMLWorkbook
-            bSaved = True
-        End If
-    Loop
+    Call RevisionVersionSave(saveDir + "\" + saveBaseName, saveExt)
+Fini:
 End Sub
+'Sub VersionSave(savePathFile As String)
+'    Dim saveVer As String
+'    Dim bSaved As Boolean
+'    Dim savePath As String
+'    Dim saveExt As String
+'
+'    saveExt = ".xlsx"
+'    bSaved = False
+'    saveVer = ""
+'    Do While Not bSaved
+'        savePath = savePathFile + Format(Date, "yyyy.mm.dd") + saveVer + saveExt
+'        If Dir(savePath) <> "" Then
+'            'file exists, update version
+'            If saveVer = "" Then
+'                saveVer = "A"
+'            Else
+'                saveVer = Chr(Asc(saveVer) + 1)    ' fails at Z
+'            End If
+'        Else
+'            ActiveWorkbook.SaveAs savePath, FileFormat:=xlOpenXMLWorkbook
+'            bSaved = True
+'        End If
+'    Loop
+'End Sub
 Sub SaveBusinessObjectsReport()
 ' Saves file to a specific filename in a specific directory
     Dim saveDir As String, saveBaseName As String
@@ -393,7 +451,6 @@ Sub SaveJiraReport()
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
-
 Sub SaveAsWithDate()
 ' Saves file to a user specified filename in my documents folder
     Dim saveDir As String, saveBaseName As String
@@ -419,6 +476,30 @@ Sub SaveAsWithDate()
 Fini:
     'Debug.Print (saveBaseName)
 End Sub
+Function StripRev(inName As String) As String
+'   Strip off the ext and if the name has a date, strip off any rev number from the date
+'   first the ext
+    Dim strDate As String
+    
+    On Error GoTo Fini
+    inName = Left(inName, Len(inName) - 5) ' assume end is .xlsx=5 char
+    StripRev = inName
+    If Len(inName) <= 10 Then
+        Exit Function
+    Else
+        strDate = Right(inName, 10)
+        If strDate Like "####?##?##" Then
+            Exit Function
+        Else
+            strDate = Right(inName, 11)
+            If strDate Like "####?##?##?" Then
+                StripRev = Left(StripRev, Len(StripRev) - 1)
+                Exit Function
+            End If
+        End If
+    End If
+Fini:
+End Function
 Function StripDate(inName As String) As String
     If Len(inName) < 15 Then 'can't hold the date if too short (date + .xlsx ext)
         StripDate = inName
@@ -471,35 +552,35 @@ Function GetMyDirectory()
        GetMyDirectory = ""
     End If
 End Function
-Sub cmeBObjLaborReportPreparation()
-    Dim tbl As ListObject
-    Dim rng As Range
-    Dim iStyle As Integer
-    
-    Sheets("Labor Details").Select
-    Range("B2").Select
-    Range(Selection, Selection.End(xlDown)).Select
-    Range(Selection, Selection.End(xlToRight)).Select
-    Selection.Copy
-    Sheets.Add After:=ActiveSheet
-    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
-        :=False, Transpose:=False
-    Range("A1").Select
-    ActiveWorkbook.ActiveSheet.rows(1).Find("Week Ending").Select
-    ActiveCell.EntireColumn.Select
-    Selection.NumberFormat = "dd-mmm-yy"
-    
-    ActiveSheet.Name = ProcessSheetName(">L >D")
-    Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
-    Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
-    'tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
-'    iStyle = Day(Date) '28 styles available
-'    If iStyle > 28 Then iStyle = iStyle - 28
-'    tbl.TableStyle = "TableStyleMedium" & Day(Date)
-    tbl.TableStyle = cmeMagicTableStyle
-    cmeAutoLimitProcess (60)
-    Range("A1").Select
-End Sub
+'Sub cmeBObjLaborReportPreparation()
+'    Dim tbl As ListObject
+'    Dim rng As Range
+'    Dim iStyle As Integer
+'
+'    Sheets("Labor Details").Select
+'    Range("B2").Select
+'    Range(Selection, Selection.End(xlDown)).Select
+'    Range(Selection, Selection.End(xlToRight)).Select
+'    Selection.Copy
+'    Sheets.Add After:=ActiveSheet
+'    Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
+'        :=False, Transpose:=False
+'    Range("A1").Select
+'    ActiveWorkbook.ActiveSheet.rows(1).Find("Week Ending").Select
+'    ActiveCell.EntireColumn.Select
+'    Selection.NumberFormat = "dd-mmm-yy"
+'
+'    ActiveSheet.Name = ProcessSheetName(">L >D")
+'    Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
+'    Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
+'    'tbl.TableStyle = "TableStyleMedium" & Weekday(Date)
+''    iStyle = Day(Date) '28 styles available
+''    If iStyle > 28 Then iStyle = iStyle - 28
+''    tbl.TableStyle = "TableStyleMedium" & Day(Date)
+'    tbl.TableStyle = cmeMagicTableStyle
+'    cmeAutoLimitProcess (60)
+'    Range("A1").Select
+'End Sub
 Function cmeMagicTableStyle() As String
     Dim iStyle As Integer
     iStyle = Day(Date) '28 styles available
@@ -530,7 +611,9 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
+    If Left(ActiveSheet.Name, 5) = "Sheet" Then ' change name if not named so this routine can be used for anything
+        ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
+    End If
 End Sub
 Sub cmeWIPTable()
     Dim objTable As PivotTable
@@ -557,3 +640,4 @@ Sub cmeWIPTable()
     
     ActiveSheet.Name = ProcessSheetName(">P WIP") ' name the sheet Pivot WIP
 End Sub
+
