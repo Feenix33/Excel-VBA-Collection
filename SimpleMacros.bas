@@ -611,7 +611,7 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    If Left(ActiveSheet.Name, 5) = "Sheet" Then ' change name if not named so this routine can be used for anything
+    If (Left(ActiveSheet.Name, 5) = "Sheet" Or Left(ActiveSheet.Name, 6) = "export") Then ' change name if not named so this routine can be used for anything
         ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
     End If
 End Sub
@@ -639,5 +639,15 @@ Sub cmeWIPTable()
     objTable.TableStyle2 = cmeMagicPivotStyle ' "PivotStyleMedium" & Weekday(Date)
     
     ActiveSheet.Name = ProcessSheetName(">P WIP") ' name the sheet Pivot WIP
+End Sub
+Sub AddType()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    
+    strActiveTable = ActiveCell.ListObject.Name
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Type"
+    ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[Formatted ID]],2)"
 End Sub
 
