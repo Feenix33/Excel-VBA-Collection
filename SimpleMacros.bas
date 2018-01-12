@@ -602,6 +602,8 @@ End Function
 Sub RallyReportPreparation()
     Dim tbl As ListObject
     Dim rng As Range
+    Dim arrChange As Variant
+    arrChange = Split("sheet,expor,out", ",") ' array of magic names to convert
     
     Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
     Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
@@ -611,9 +613,10 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    If (Left(ActiveSheet.Name, 5) = "Sheet" Or Left(ActiveSheet.Name, 6) = "export") Then ' change name if not named so this routine can be used for anything
-        ActiveSheet.Name = ProcessSheetName(">D") ' name the sheet for today
+    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrChange, 0)) Then ' see if we should rename the sheet
+        ActiveSheet.Name = ProcessSheetName(">d") ' name the sheet for today
     End If
+        
 End Sub
 Sub cmeWIPTable()
     Dim objTable As PivotTable
@@ -640,7 +643,7 @@ Sub cmeWIPTable()
     
     ActiveSheet.Name = ProcessSheetName(">P WIP") ' name the sheet Pivot WIP
 End Sub
-Sub AddType()
+Sub cmeAddRallyType()
     Dim strActiveTable As String
     Dim ptrTable As ListObject
     
