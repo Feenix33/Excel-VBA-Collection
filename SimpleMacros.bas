@@ -651,6 +651,31 @@ Sub cmeAddRallyType()
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
     ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Type"
-    ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[Formatted ID]],2)"
+    ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[FormattedID]],2)"
+End Sub
+Sub cmeAddRallyDone()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    
+    strActiveTable = ActiveCell.ListObject.Name
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Done"
+    ptrTable.ListColumns("Done").DataBodyRange.FormulaR1C1 = "=OR([ScheduleState]=""Accepted"",[ScheduleState]=""Completed"",[ScheduleState]=""Released-to-Production"")"
+End Sub
+Sub cmeAddRallyIterSort()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    
+    strActiveTable = ActiveCell.ListObject.Name
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Iteration.Sortable"
+    ptrTable.ListColumns("Iteration.Sortable").DataBodyRange.FormulaR1C1 = "=IF(LEN([Iteration.Name])>9,MID([@[Iteration.Name]],5,4)&""#""&LEFT([@[Iteration.Name]],3),"""")"
+End Sub
+Sub cmeAddRallyExtras()
+    cmeAddRallyType
+    cmeAddRallyDone
+    cmeAddRallyIterSort
 End Sub
 
