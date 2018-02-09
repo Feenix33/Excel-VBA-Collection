@@ -613,7 +613,7 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrChange, 0)) Then ' see if we should rename the sheet
+    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrChange, 0)) Or (ActiveSheet.Name = "Now") Then ' see if we should rename the sheet
         ActiveSheet.Name = ProcessSheetName(">d") ' name the sheet for today
     End If
         
@@ -648,34 +648,83 @@ Sub cmeAddRallyType()
     Dim ptrTable As ListObject
     
     strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "Type") = True Then Exit Sub
+    
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
     ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Type"
-    ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[FormattedID]],2)"
+    On Error GoTo AltName
+        ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[Formatted ID]],2)"
+        Exit Sub
+AltName:
+    On Error GoTo Fini
+        ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[FormattedID]],2)"
+Fini:
 End Sub
 Sub cmeAddRallyDone()
     Dim strActiveTable As String
     Dim ptrTable As ListObject
     
     strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "Done") = True Then Exit Sub
+    
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
     ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Done"
-    ptrTable.ListColumns("Done").DataBodyRange.FormulaR1C1 = "=OR([ScheduleState]=""Accepted"",[ScheduleState]=""Completed"",[ScheduleState]=""Released-to-Production"")"
+    On Error GoTo AltName
+        ptrTable.ListColumns("Done").DataBodyRange.FormulaR1C1 = "=OR([Schedule State]=""Accepted"",[Schedule State]=""Completed"",[Schedule State]=""Released-to-Production"")"
+        Exit Sub
+AltName:
+    On Error GoTo Fini
+        ptrTable.ListColumns("Done").DataBodyRange.FormulaR1C1 = "=OR([ScheduleState]=""Accepted"",[ScheduleState]=""Completed"",[ScheduleState]=""Released-to-Production"")"
+Fini:
 End Sub
 Sub cmeAddRallyIterSort()
     Dim strActiveTable As String
     Dim ptrTable As ListObject
     
     strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "Iteration.Sortable") = True Then Exit Sub
+    
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
     ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Iteration.Sortable"
-    ptrTable.ListColumns("Iteration.Sortable").DataBodyRange.FormulaR1C1 = "=IF(LEN([Iteration.Name])>9,MID([@[Iteration.Name]],5,4)&""#""&LEFT([@[Iteration.Name]],3),"""")"
+    On Error GoTo AltName
+        ptrTable.ListColumns("Iteration.Sortable").DataBodyRange.FormulaR1C1 = "=IF(LEN([Iteration])>9,MID([@[Iteration]],5,4)&""#""&LEFT([@[Iteration]],3),"""")"
+        Exit Sub
+AltName:
+    On Error GoTo Fini
+        ptrTable.ListColumns("Iteration.Sortable").DataBodyRange.FormulaR1C1 = "=IF(LEN([Iteration.Name])>9,MID([@[Iteration.Name]],5,4)&""#""&LEFT([@[Iteration.Name]],3),"""")"
+Fini:
 End Sub
 Sub cmeAddRallyExtras()
     cmeAddRallyType
     cmeAddRallyDone
     cmeAddRallyIterSort
 End Sub
+Public Function HeaderExists(TableName As String, HeaderName As String) As Boolean
 
+'PURPOSE: Output a true value if column name exists in specified table
+'SOURCE: www.TheSpreadsheetGuru.com
+
+Dim tbl As ListObject
+Dim hdr As ListColumn
+
+On Error GoTo DoesNotExist
+  Set tbl = ActiveSheet.ListObjects(TableName)
+  Set hdr = tbl.ListColumns(HeaderName)
+On Error GoTo 0
+
+HeaderExists = True
+
+Exit Function
+
+'Error Handler
+DoesNotExist:
+  Err.Clear
+  HeaderExists = False
+
+End Function
