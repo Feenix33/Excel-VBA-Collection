@@ -1,10 +1,27 @@
 Attribute VB_Name = "SimpleMacros"
 Option Explicit
+Function cmeDate2Iter(dateIn As Date) As String
+    Dim dayMagic As Date
+    Dim dayDiff, outYear As Integer
+    Dim itNum As Integer
+    
+    dayMagic = #1/3/2018#
+    outYear = 2018
+    If dateIn < dayMagic Then
+        dayMagic = #1/4/2017#
+        outYear = 2017
+    End If
+    dayDiff = DateDiff("d", dayMagic, dateIn)
+    itNum = Int((dayDiff / 14) + 0.5)
+    cmeDate2Iter = Str(outYear) & "#S" & Format(itNum, "00")
+End Function
 Sub cmePasteValues()
 Attribute cmePasteValues.VB_ProcData.VB_Invoke_Func = "V\n14"
 ' Keyboard Shortcut: Ctrl+Shift+V
+    On Error GoTo Fini
     Selection.PasteSpecial Paste:=xlPasteValues, Operation:=xlNone, SkipBlanks _
         :=False, Transpose:=False
+Fini:
 End Sub
 Sub cmeFilterOnValue()
 Attribute cmeFilterOnValue.VB_ProcData.VB_Invoke_Func = "l\n14"
@@ -55,11 +72,6 @@ Function ProcessSheetName(inputSheetName As String) As String
        newSheetName = Left(newSheetName, pos - 1) + "Pivot" + Right(newSheetName, Len(newSheetName) - pos - 1)
     End If
     
-    pos = InStr(LCase(newSheetName), ">gt")
-    If pos > 0 Then
-       newSheetName = Left(newSheetName, pos - 1) + "GetThere" + Right(newSheetName, Len(newSheetName) - pos - 2)
-    End If
-    
     pos = InStr(LCase(newSheetName), ">iter")
     If pos > 0 Then
        newSheetName = Left(newSheetName, pos - 1) + "Iteration" + Right(newSheetName, Len(newSheetName) - pos - 4)
@@ -80,15 +92,9 @@ Function ProcessSheetName(inputSheetName As String) As String
        newSheetName = Left(newSheetName, pos - 1) + "Labor Hours" + Right(newSheetName, Len(newSheetName) - pos - 2)
     End If
     
-    pos = InStr(LCase(newSheetName), ">l")
+    pos = InStr(LCase(newSheetName), ">h")
     If pos > 0 Then
-       newSheetName = Left(newSheetName, pos - 1) + "Labor" + Right(newSheetName, Len(newSheetName) - pos - 1)
-    End If
-    
-    pos = InStr(LCase(newSheetName), ">and")
-    If pos > 0 Then
-       newSheetName = Left(newSheetName, pos - 1) + "Analysis >d" + Right(newSheetName, Len(newSheetName) - pos - 3)
-       newSheetName = ProcessSheetName(newSheetName)
+       newSheetName = Left(newSheetName, pos - 1) + "Hierarchy" + Right(newSheetName, Len(newSheetName) - pos - 1)
     End If
     
     pos = InStr(LCase(newSheetName), ">an")
@@ -280,23 +286,23 @@ Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
         Set tableObj = Nothing
     End If
 End Sub
-Sub cmeCalendar()
-    Dim rows As Integer
-    Dim cols As Integer
-    Dim aDay As Date
-    Dim c
-    
-    
-    rows = Selection.rows.Count
-    cols = Selection.Columns.Count
-    Selection.Resize(rows, 7).Select
-    aDay = Date - Weekday(Date) + 1
-    ActiveCell.Value = aDay
-    For Each c In Selection.Cells
-        c.Value = aDay
-        aDay = aDay + 1
-    Next
-End Sub
+'Sub cmeCalendar()
+'    Dim rows As Integer
+'    Dim cols As Integer
+'    Dim aDay As Date
+'    Dim c
+'
+'
+'    rows = Selection.rows.Count
+'    cols = Selection.Columns.Count
+'    Selection.Resize(rows, 7).Select
+'    aDay = Date - Weekday(Date) + 1
+'    ActiveCell.Value = aDay
+'    For Each c In Selection.Cells
+'        c.Value = aDay
+'        aDay = aDay + 1
+'    Next
+'End Sub
 Sub cmeTableFormat()
     Dim PvtTbl As PivotTable
     Dim pvtFld As PivotField
@@ -408,49 +414,49 @@ End Sub
 '        End If
 '    Loop
 'End Sub
-Sub SaveBusinessObjectsReport()
-' Saves file to a specific filename in a specific directory
-    Dim saveDir As String, saveBaseName As String
-    Dim savePath As String, saveExt As String
-    Dim reportName As String
-    
-    reportName = ActiveWorkbook.Name
-    If Left(reportName, Len("BusObj.")) = "BusObj." Then
-        reportName = Mid(reportName, Len("BusObj.") + 1, 255)
-        If InStr(reportName, ".") > 0 Then
-            reportName = Left(reportName, InStr(reportName, ".") - 1)
-        End If
-    ElseIf InStr(reportName, ".") > 0 Then 'use the part before the dot
-    'guess the first part and remove the date
-        reportName = Left(reportName, InStr(reportName, ".") - 1)
-    Else
-        reportName = "BObj"
-    End If
-    If InStr(reportName, " ") > 0 Then ' check if space in name
-        reportName = Left(reportName, InStr(reportName, " ") - 1)
-    End If
-    saveBaseName = InputBox("Which Report?", "Business Object Save", reportName)
-    If Len(saveBaseName) = 0 Then
-        Exit Sub
-    End If
-    
-    saveDir = "C:\Users\sg0213341\Documents\BusObjReports\"
-    saveBaseName = "BusObj." + saveBaseName
-    saveExt = ".xlsx"
-    
-    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
-End Sub
-Sub SaveJiraReport()
-' Saves file to a specific filename in a specific directory
-    Dim saveDir As String, saveBaseName As String
-    Dim savePath As String, saveExt As String
-        
-    saveDir = "C:\Users\sg0213341\Documents\Exports\"
-    saveBaseName = "Jira.Export."
-    saveExt = ".xlsx"
-    
-    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
-End Sub
+'Sub SaveBusinessObjectsReport()
+'' Saves file to a specific filename in a specific directory
+'    Dim saveDir As String, saveBaseName As String
+'    Dim savePath As String, saveExt As String
+'    Dim reportName As String
+'
+'    reportName = ActiveWorkbook.Name
+'    If Left(reportName, Len("BusObj.")) = "BusObj." Then
+'        reportName = Mid(reportName, Len("BusObj.") + 1, 255)
+'        If InStr(reportName, ".") > 0 Then
+'            reportName = Left(reportName, InStr(reportName, ".") - 1)
+'        End If
+'    ElseIf InStr(reportName, ".") > 0 Then 'use the part before the dot
+'    'guess the first part and remove the date
+'        reportName = Left(reportName, InStr(reportName, ".") - 1)
+'    Else
+'        reportName = "BObj"
+'    End If
+'    If InStr(reportName, " ") > 0 Then ' check if space in name
+'        reportName = Left(reportName, InStr(reportName, " ") - 1)
+'    End If
+'    saveBaseName = InputBox("Which Report?", "Business Object Save", reportName)
+'    If Len(saveBaseName) = 0 Then
+'        Exit Sub
+'    End If
+'
+'    saveDir = "C:\Users\sg0213341\Documents\BusObjReports\"
+'    saveBaseName = "BusObj." + saveBaseName
+'    saveExt = ".xlsx"
+'
+'    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
+'End Sub
+'Sub SaveJiraReport()
+'' Saves file to a specific filename in a specific directory
+'    Dim saveDir As String, saveBaseName As String
+'    Dim savePath As String, saveExt As String
+'
+'    saveDir = "C:\Users\sg0213341\Documents\Exports\"
+'    saveBaseName = "Jira.Export."
+'    saveExt = ".xlsx"
+'
+'    Call GenericVersionSave(saveDir, saveBaseName, saveExt)
+'End Sub
 Sub SaveAsWithDate()
 ' Saves file to a user specified filename in my documents folder
     Dim saveDir As String, saveBaseName As String
@@ -545,6 +551,7 @@ Function GetMyDirectory()
         fDialogue.InitialFileName = CurDir()
     Else
         fDialogue.InitialFileName = ActiveWorkbook.Path
+        fDialogue.InitialFileName = "C:\Users\sg0213341\Documents\"
     End If
     If fDialogue.Show = -1 Then
        GetMyDirectory = fDialogue.SelectedItems(1)
@@ -602,9 +609,10 @@ End Function
 Sub RallyReportPreparation()
     Dim tbl As ListObject
     Dim rng As Range
-    Dim arrChange As Variant
-    arrChange = Split("sheet,expor,out", ",") ' array of magic names to convert
+    Dim arrMagicChange As Variant
     
+    arrMagicChange = Array("now", "outpu", "sheet", "expor")
+  
     Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
     Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
 
@@ -613,10 +621,9 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrChange, 0)) Or (ActiveSheet.Name = "Now") Then ' see if we should rename the sheet
+    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrMagicChange, 0)) Then
         ActiveSheet.Name = ProcessSheetName(">d") ' name the sheet for today
     End If
-        
 End Sub
 Sub cmeWIPTable()
     Dim objTable As PivotTable
@@ -728,3 +735,43 @@ DoesNotExist:
   HeaderExists = False
 
 End Function
+Sub cmeFmtFocus()
+    Dim rngGrid As Range
+    With ActiveSheet.UsedRange
+        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.rows.Count - 1, .Columns.Count - 1))
+        rngGrid.Select
+    End With
+    
+    ' RYG Rule
+        Selection.FormatConditions.AddColorScale ColorScaleType:=3
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Value = 2
+    With Selection.FormatConditions(1).ColorScaleCriteria(1).FormatColor
+        .ThemeColor = xlThemeColorAccent6
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Value = 3
+    With Selection.FormatConditions(1).ColorScaleCriteria(2).FormatColor
+        .ThemeColor = xlThemeColorAccent4
+        .TintAndShade = 0.599993896298105
+    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Value = 4
+    With Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor
+        .Color = 6579450
+        .TintAndShade = 0
+    End With
+
+    ' Header and first col
+    Range("A1").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.Style = "40% - Accent1"
+    Range("A1").Select
+    Range(Selection, Selection.End(xlToRight)).Select
+    Selection.Style = "40% - Accent3"
+    Range("A1").Select
+    cmeAutoLimitProcess (40)
+End Sub
+
