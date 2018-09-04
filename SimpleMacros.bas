@@ -1,5 +1,19 @@
 Attribute VB_Name = "SimpleMacros"
 Option Explicit
+Public iHeatMapG As Long
+Public iHeatMapY As Long
+Public iHeatMapR As Long
+Public iHeatClrG As Long
+Public iHeatClrY As Long
+Public iHeatClrR As Long
+Private Sub Workbook_Open()
+    iHeatMapG = 2
+    iHeatMapY = 3
+    iHeatMapR = 4
+    iHeatClrG = RGB(64, 255, 64)
+    iHeatClrY = RGB(255, 255, 64)
+    iHeatClrR = RGB(255, 64, 64)
+End Sub
 Function cmeDate2Iter(dateIn As Date) As String
     Dim dayMagic As Date
     Dim dayDiff, outYear As Integer
@@ -809,8 +823,9 @@ Sub cmeTabulateImportData()
     Range("C1").Select
     Selection.FormulaR1C1 = "FEA.Name"
 End Sub
-Sub cmeHeat2Pivot()
-' cmeHeat2Pivot Macro
+Sub cmeHeatMapPivot()
+    frmRYG.Show
+
     Dim pPvtTbl As PivotTable
     Set pPvtTbl = ActiveSheet.PivotTables(1)
     
@@ -818,24 +833,14 @@ Sub cmeHeat2Pivot()
     Selection.FormatConditions.AddColorScale ColorScaleType:=3
     Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
     Selection.FormatConditions(1).ColorScaleCriteria(1).Type = xlConditionValueNumber
-    Selection.FormatConditions(1).ColorScaleCriteria(1).Value = 2
-    With Selection.FormatConditions(1).ColorScaleCriteria(1).FormatColor
-        .ThemeColor = xlThemeColorAccent6
-        .TintAndShade = 0
-    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Value = iHeatMapG
+    Selection.FormatConditions(1).ColorScaleCriteria(1).FormatColor.Color = iHeatClrG
     Selection.FormatConditions(1).ColorScaleCriteria(2).Type = xlConditionValueNumber
-    Selection.FormatConditions(1).ColorScaleCriteria(2).Value = 3
-    With Selection.FormatConditions(1).ColorScaleCriteria(2).FormatColor
-        .ThemeColor = xlThemeColorAccent4
-        .TintAndShade = 0.599993896298105
-    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Value = iHeatMapY
+    Selection.FormatConditions(1).ColorScaleCriteria(2).FormatColor.Color = iHeatClrY
     Selection.FormatConditions(1).ColorScaleCriteria(3).Type = xlConditionValueNumber
-    Selection.FormatConditions(1).ColorScaleCriteria(3).Value = 4
-    With Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor
-        .Color = 6579450
-        .TintAndShade = 0
-    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Value = iHeatMapR
+    Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor.Color = iHeatClrR
     ActiveCell.SpecialCells(xlLastCell).Select
-Fini:
 End Sub
 
