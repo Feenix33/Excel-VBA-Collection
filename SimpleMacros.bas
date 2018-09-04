@@ -707,6 +707,24 @@ AltName:
         ptrTable.ListColumns("Iteration.Sortable").DataBodyRange.FormulaR1C1 = "=IF(LEN([Iteration.Name])>9,MID([@[Iteration.Name]],5,4)&""#""&LEFT([@[Iteration.Name]],3),"""")"
 Fini:
 End Sub
+Sub cmeAddTFID()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    
+    strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "TF.ID") = True Then Exit Sub
+    
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "TF.ID"
+    On Error GoTo AltName
+        ptrTable.ListColumns("TF.ID").DataBodyRange.FormulaR1C1 = "=MID([@[Team Feature]],14,FIND("":"",[@[Team Feature]])-14)"
+        Exit Sub
+AltName:
+    On Error GoTo Fini
+Fini:
+End Sub
 Sub cmeAddRallyExtras()
     cmeAddRallyType
     cmeAddRallyDone
@@ -743,7 +761,7 @@ Sub cmeFmtFocus()
     End With
     
     ' RYG Rule
-        Selection.FormatConditions.AddColorScale ColorScaleType:=3
+    Selection.FormatConditions.AddColorScale ColorScaleType:=3
     Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
     Selection.FormatConditions(1).ColorScaleCriteria(1).Type = xlConditionValueNumber
     Selection.FormatConditions(1).ColorScaleCriteria(1).Value = 2
@@ -773,5 +791,51 @@ Sub cmeFmtFocus()
     Selection.Style = "40% - Accent3"
     Range("A1").Select
     cmeAutoLimitProcess (40)
+End Sub
+Sub cmeTabulateImportData()
+' Convert imported data to columns
+    Range("A1").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    Selection.TextToColumns Destination:=Range("A1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=True, Tab:=True, _
+        Semicolon:=True, Comma:=True, Space:=True, Other:=False, FieldInfo:= _
+        Array(Array(1, 1), Array(2, 1), Array(3, 1)), TrailingMinusNumbers:=True
+    rows("1:1").Select
+    Selection.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("A1").Select
+    ActiveCell.FormulaR1C1 = "TF.ID"
+    Range("B1").Select
+    ActiveCell.FormulaR1C1 = "FEA.ID"
+    Range("C1").Select
+    Selection.FormulaR1C1 = "FEA.Name"
+End Sub
+Sub cmeHeat2Pivot()
+' cmeHeat2Pivot Macro
+    Dim pPvtTbl As PivotTable
+    Set pPvtTbl = ActiveSheet.PivotTables(1)
+    
+    pPvtTbl.DataBodyRange.Select
+    Selection.FormatConditions.AddColorScale ColorScaleType:=3
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Value = 2
+    With Selection.FormatConditions(1).ColorScaleCriteria(1).FormatColor
+        .ThemeColor = xlThemeColorAccent6
+        .TintAndShade = 0
+    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Value = 3
+    With Selection.FormatConditions(1).ColorScaleCriteria(2).FormatColor
+        .ThemeColor = xlThemeColorAccent4
+        .TintAndShade = 0.599993896298105
+    End With
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Value = 4
+    With Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor
+        .Color = 6579450
+        .TintAndShade = 0
+    End With
+    ActiveCell.SpecialCells(xlLastCell).Select
+Fini:
 End Sub
 
