@@ -1,20 +1,17 @@
 Attribute VB_Name = "SimpleMacros"
 Option Explicit
-Public iHeatMapG As Long
-Public iHeatMapY As Long
-Public iHeatMapR As Long
+Public iHeatMapG As Double
+Public iHeatMapY As Double
+Public iHeatMapR As Double
 Public iHeatClrG As Long
 Public iHeatClrY As Long
 Public iHeatClrR As Long
-Private Sub Workbook_Open()
-    iHeatMapG = 2
-    iHeatMapY = 3
-    iHeatMapR = 4
-    iHeatClrG = RGB(64, 255, 64)
-    iHeatClrY = RGB(255, 255, 64)
-    iHeatClrR = RGB(255, 64, 64)
+Public giFrmRYGReturn As Long
+Sub cmeSetAutoCalc()
+    Application.Calculation = xlAutomatic
 End Sub
 Function cmeDate2Iter(dateIn As Date) As String
+' Convert input date into an iteration number
     Dim dayMagic As Date
     Dim dayDiff, outYear As Integer
     Dim itNum As Integer
@@ -823,9 +820,32 @@ Sub cmeTabulateImportData()
     Range("C1").Select
     Selection.FormulaR1C1 = "FEA.Name"
 End Sub
+Public Sub PivotFieldsToDistinctCount()
+    Dim pf As PivotField
+    With Selection.PivotTable
+       For Each pf In .DataFields
+        With pf
+            .Function = xlDistinctCount
+        End With
+       Next pf
+    End With
+End Sub
 Sub cmeHeatMapPivot()
+    'MsgBox "HeatG = [" + Str(iHeatMapG) + "]"
+    If (iHeatClrG = 0) Or (iHeatClrY = 0) Or (iHeatClrR = 0) Then
+        iHeatMapG = 2
+        iHeatMapY = 3
+        iHeatMapR = 4
+        iHeatClrG = RGB(102, 255, 51)
+        iHeatClrY = RGB(255, 255, 102)
+        iHeatClrR = RGB(255, 80, 80)
+    End If
     frmRYG.Show
 
+    If giFrmRYGReturn = 0 Then
+        GoTo Fini
+    End If
+    
     Dim pPvtTbl As PivotTable
     Set pPvtTbl = ActiveSheet.PivotTables(1)
     
@@ -841,6 +861,7 @@ Sub cmeHeatMapPivot()
     Selection.FormatConditions(1).ColorScaleCriteria(3).Type = xlConditionValueNumber
     Selection.FormatConditions(1).ColorScaleCriteria(3).Value = iHeatMapR
     Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor.Color = iHeatClrR
-    ActiveCell.SpecialCells(xlLastCell).Select
+    Range("A1").Select
+Fini:
 End Sub
 

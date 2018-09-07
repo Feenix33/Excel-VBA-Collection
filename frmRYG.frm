@@ -4,7 +4,7 @@ Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmRYG
    ClientHeight    =   3030
    ClientLeft      =   120
    ClientTop       =   450
-   ClientWidth     =   3465
+   ClientWidth     =   3960
    OleObjectBlob   =   "frmRYG.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -13,9 +13,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Dim iValG As Long
-Dim iValY As Long
-Dim iValR As Long
+Dim iValG As Double
+Dim iValY As Double
+Dim iValR As Double
 Dim iClrG As Long
 Dim iClrY As Long
 Dim iClrR As Long
@@ -39,6 +39,22 @@ Private Function fcnColor(clrIn) As Long
     End If
     fcnColor = clrIn
 End Function
+
+Private Sub btnDefault_Click()
+    iValG = 2
+    iValY = 3
+    iValR = 4
+    iHeatClrG = RGB(99, 190, 123)
+    iHeatClrY = RGB(2255, 235, 132)
+    iHeatClrR = RGB(248, 105, 107)
+    btnG.BackColor = iClrG
+    btnY.BackColor = iClrY
+    btnR.BackColor = iClrR
+    txtG.Text = CStr(iValG)
+    txtY.Text = CStr(iValY)
+    txtR.Text = CStr(iValR)
+End Sub
+
 Private Sub btnG_Click()
     iClrG = fcnColor(iClrG)
     btnG.BackColor = iClrG
@@ -53,12 +69,13 @@ Private Sub btnR_Click()
 End Sub
 
 Private Sub btnOK_Click()
-    iHeatMapG = CInt(txtG.Text)
-    iHeatMapY = CInt(txtY.Text)
-    iHeatMapR = CInt(txtR.Text)
+    iHeatMapG = CDbl(txtG.Text)
+    iHeatMapY = CDbl(txtY.Text)
+    iHeatMapR = CDbl(txtR.Text)
     iHeatClrG = btnG.BackColor
     iHeatClrY = btnY.BackColor
     iHeatClrR = btnR.BackColor
+    giFrmRYGReturn = 1
     Unload Me
 End Sub
 
@@ -77,4 +94,5 @@ Private Sub UserForm_Initialize()
     txtG.Text = CStr(iValG)
     txtY.Text = CStr(iValY)
     txtR.Text = CStr(iValR)
+    giFrmRYGReturn = 0
 End Sub
