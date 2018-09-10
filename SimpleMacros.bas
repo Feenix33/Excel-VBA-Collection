@@ -155,13 +155,7 @@ Attribute cmdAutoSize.VB_ProcData.VB_Invoke_Func = "j\n14"
     rngOrigSelect.Select
     rngOrigCell.Activate
 End Sub
-Sub UsedRange_Example_Column()
-    Dim LastColumn As Long
-    With ActiveSheet.UsedRange
-        LastColumn = .Columns(.Columns.Count).Column
-    End With
-    MsgBox LastColumn
-End Sub
+
 Sub cmeAutoLimit()
 Attribute cmeAutoLimit.VB_ProcData.VB_Invoke_Func = "L\n14"
 ' Auto size the cells, but then loop through and limit the width
@@ -195,13 +189,13 @@ Sub cmeAutoLimitProcess(myWidth As Integer)
         GoTo Fini
     End If
     
-    Dim LastColumn As Long
+    Dim lastColumn As Long
     With ActiveSheet.UsedRange
-        LastColumn = .Columns(.Columns.Count).Column
+        lastColumn = .Columns(.Columns.Count).Column
     End With
 
     Dim c As Integer
-    For c = 1 To LastColumn
+    For c = 1 To lastColumn
         If (Cells(1, c).ColumnWidth > myWidth) Then
             Cells(1, c).ColumnWidth = myWidth
             Columns(c).WrapText = True
@@ -741,11 +735,21 @@ Sub cmeAddRallyExtras()
     cmeAddRallyDone
     cmeAddRallyIterSort
 End Sub
-Public Function HeaderExists(TableName As String, HeaderName As String) As Boolean
+Sub cmeUniqueCount()
+'
+' cmeUniqueCount Macro
+'
 
+'
+    With ActiveSheet.PivotTables("PivotTable1").PivotFields( _
+        "[Measures].[Count of FEA.ID]")
+        .Caption = "Distinct Count of FEA.ID"
+        .Function = xlDistinctCount
+    End With
+End Sub
+Public Function HeaderExists(TableName As String, HeaderName As String) As Boolean
 'PURPOSE: Output a true value if column name exists in specified table
 'SOURCE: www.TheSpreadsheetGuru.com
-
 Dim tbl As ListObject
 Dim hdr As ListColumn
 
@@ -764,6 +768,33 @@ DoesNotExist:
   HeaderExists = False
 
 End Function
+Sub Combine()
+    Dim J As Integer
+
+    On Error Resume Next
+    Sheets(1).Select
+    Worksheets.Add ' add a sheet in first place
+    Sheets(1).Name = "Combined"
+
+    ' copy headings
+    Sheets(2).Activate
+    Range("A1").EntireRow.Select
+    Selection.Copy Destination:=Sheets(1).Range("A1")
+
+    ' work through sheets
+    For J = 2 To Sheets.Count ' from sheet 2 to last sheet
+        Sheets(J).Activate ' make the sheet active
+        Range("A1").Select
+        Selection.CurrentRegion.Select ' select all cells in this sheets
+
+        ' select all lines except title
+        Selection.Offset(1, 0).Resize(Selection.rows.Count - 1).Select
+
+        ' copy cells selected in the new sheet on last line
+        Selection.Copy Destination:=Sheets(1).Range("A65536").End(xlUp)(2)
+    Next
+End Sub
+
 Sub cmeFmtFocus()
     Dim rngGrid As Range
     With ActiveSheet.UsedRange
@@ -836,9 +867,9 @@ Sub cmeHeatMapPivot()
         iHeatMapG = 2
         iHeatMapY = 3
         iHeatMapR = 4
-        iHeatClrG = RGB(102, 255, 51)
-        iHeatClrY = RGB(255, 255, 102)
-        iHeatClrR = RGB(255, 80, 80)
+        iHeatClrG = RGB(99, 190, 123)
+        iHeatClrY = RGB(255, 235, 132)
+        iHeatClrR = RGB(248, 105, 107)
     End If
     frmRYG.Show
 
@@ -864,4 +895,144 @@ Sub cmeHeatMapPivot()
     Range("A1").Select
 Fini:
 End Sub
+Sub cmeFmtThreeColor()
+    If (iHeatClrG = 0) Or (iHeatClrY = 0) Or (iHeatClrR = 0) Then
+        iHeatMapG = 2
+        iHeatMapY = 3
+        iHeatMapR = 4
+        iHeatClrG = RGB(99, 190, 123)
+        iHeatClrY = RGB(255, 235, 132)
+        iHeatClrR = RGB(248, 105, 107)
+    End If
+    Dim rngGrid As Range
+    With ActiveSheet.UsedRange
+        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.rows.Count - 1, .Columns.Count - 1))
+        rngGrid.Select
+    End With
+    frmRYG.Show
+    If giFrmRYGReturn = 0 Then GoTo Fini
+    
+    Selection.FormatConditions.AddColorScale ColorScaleType:=3
+    Selection.FormatConditions(Selection.FormatConditions.Count).SetFirstPriority
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(1).Value = iHeatMapG
+    Selection.FormatConditions(1).ColorScaleCriteria(1).FormatColor.Color = iHeatClrG
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(2).Value = iHeatMapY
+    Selection.FormatConditions(1).ColorScaleCriteria(2).FormatColor.Color = iHeatClrY
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Type = xlConditionValueNumber
+    Selection.FormatConditions(1).ColorScaleCriteria(3).Value = iHeatMapR
+    Selection.FormatConditions(1).ColorScaleCriteria(3).FormatColor.Color = iHeatClrR
+    Range("A1").Select
+Fini:
+End Sub
+Sub CombineWithNames()
+    Dim J As Integer
 
+    On Error Resume Next
+    Sheets(1).Select
+    Worksheets.Add ' add a sheet in first place
+    Sheets(1).Name = "Combined"
+
+    ' copy headings
+    Sheets(2).Activate
+    Range("A1").EntireRow.Select
+    Selection.Copy Destination:=Sheets(1).Range("A1")
+
+    ' work through sheets
+    For J = 2 To Sheets.Count ' from sheet 2 to last sheet
+        Sheets(J).Activate ' make the sheet active
+        Range("A1").Select
+        Selection.CurrentRegion.Select ' select all cells in this sheets
+
+        ' select all lines except title
+        Selection.Offset(1, 0).Resize(Selection.rows.Count - 1).Select
+
+        ' copy cells selected in the new sheet on last line
+        Selection.Copy Destination:=Sheets(1).Range("A65536").End(xlUp)(2)
+    Next
+End Sub
+Attribute VB_Name = "Module1"
+Sub AddName()
+Attribute AddName.VB_ProcData.VB_Invoke_Func = " \n14"
+    Selection.End(xlUp).Select
+    Selection.End(xlToRight).Select
+    Range("E1").Select
+    Selection.FormulaR1C1 = "SheetName"
+    Range("D1").Select
+    Selection.End(xlDown).Select
+    Range("E9").Select
+    Range(Selection, Selection.End(xlUp)).Select
+    Range("E2:E9").Select
+    Range("E9").Activate
+    Selection.FormulaR1C1 = "Sheet1"
+End Sub
+Sub Macro2()
+Attribute Macro2.VB_ProcData.VB_Invoke_Func = " \n14"
+    Range("E1").Select
+    ActiveCell.FormulaR1C1 = "SheetName"
+    Range("E2").Select
+    Range(Selection, Selection.End(xlDown)).Select
+    ActiveCell.FormulaR1C1 = "Sheet1 (4)"
+    Range("Table2[SheetName]").Select
+    Range("E3").Activate
+    Selection.FormulaR1C1 = "Sheet1 (4)"
+End Sub
+Sub aMacro()
+    MsgBox "I am " + ActiveSheet.Name
+End Sub
+Sub bMacro()
+    Dim lastColumn As Long
+    lastColumn = ActiveSheet.Range("A1").SpecialCells(xlCellTypeLastCell).Column
+    Columns(lastColumn).Copy Destination:=Columns(lastColumn + 1)
+End Sub
+Sub cMacro()
+    If IsActiveCellInTable Then
+        MsgBox "True"
+    Else
+        MsgBox "False"
+    End If
+End Sub
+Function IsActiveCellInTable() As Boolean
+
+  'Function returns true if active cell is in a table and
+  'false if it isn't.
+    Dim rngActiveCell
+    Set rngActiveCell = ActiveCell
+    Debug.Print IsActiveCellInTable
+    'Test for table.
+    'Statement produces error when active cell is not
+    'in a table.
+    On Error Resume Next
+    rngActiveCell = (rngActiveCell.ListObject.Name <> "")
+    'On Error GoTo 0
+    On Error GoTo Fini
+    'Set function's return value.
+    IsActiveCellInTable = rngActiveCell
+    Return
+Fini:
+    IsActiveCellInTable = False
+End Function
+Sub AddSheetColumn()
+    Range("A1").Select
+    If Not IsActiveCellInTable Then
+      Dim tbl As ListObject
+      Dim rng As Range
+    
+      Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
+      Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
+    End If
+    
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    
+    strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "Sheet.Name") = True Then Exit Sub
+    
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Sheet.Name"
+    ptrTable.ListColumns("Sheet.Name").DataBodyRange.FormulaR1C1 = ActiveSheet.Name
+Fini:
+End Sub

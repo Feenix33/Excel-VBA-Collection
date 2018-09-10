@@ -4,22 +4,30 @@ Attribute cmePrepQView.VB_ProcData.VB_Invoke_Func = " \n14"
 ' cmePrepQView Macro
     rows("2:2").Select
     Selection.Delete Shift:=xlUp
+    cmeTextColumnToNumber ("Approved Overtime Hours")
+    cmeTextColumnToNumber ("Approved Labor Hours")
+    cmeTextColumnToNumber ("Approved Straight Hours")
+    
     cmeTextColumnToNumber ("Labor Hours")
     cmeTextColumnToNumber ("Standard Hours")
     cmeTextColumnToNumber ("Overtime Hours")
-    cmeTextColumnToDate ("Weekend")
-    cmeTextColumnToNumber ("Approval Date")
     
-    Range("A1").Select
-    Range(Selection, Selection.End(xlToRight)).Select
-    Range(Selection, Selection.End(xlDown)).Select
+    cmeTextColumnToDate ("Weekend")
+    cmeTextColumnToDate ("Approval Date")
+    
+    ActiveSheet.UsedRange.Select
     Selection.ClearFormats
+    
+'    cmeTextColumnToMonth ("Month")
+    ActiveSheet.UsedRange.Select
+    
     Dim objTable As ListObject
     Set objTable = ActiveSheet.ListObjects.Add(xlSrcRange, Selection, , xlYes)
     objTable.TableStyle = cmeMagicTableStyle
     'Format again because the above clears our the date
     cmeFormatAsDate ("Weekend")
     cmeFormatAsDate ("Approval Date")
+    cmeReFormatDate ("Month")
     Range("A1").Select
 End Sub
 
@@ -46,6 +54,24 @@ Sub cmeTextColumnToDate(strColName As String)
     Selection.NumberFormat = "mm/dd/yy;@"
 DoesNotExist:
 End Sub
+Sub cmeTextColumnToMonth(strColName As String)
+    On Error GoTo DoesNotExist
+    ActiveWorkbook.ActiveSheet.rows(1).Find(strColName).Select
+    ActiveCell.EntireColumn.Select
+    Selection.TextToColumns DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 3), TrailingMinusNumbers:=True
+    Selection.NumberFormat = "mmm"
+DoesNotExist:
+End Sub
+Sub cmeReFormatDate(strColName As String)
+    On Error GoTo DoesNotExist
+    ActiveWorkbook.ActiveSheet.rows(1).Find(strColName).Select
+    ActiveCell.EntireColumn.Select
+    Selection.NumberFormat = "mmm-yy"
+DoesNotExist:
+End Sub
 Sub cmeFormatAsDate(strColName As String)
     On Error GoTo DoesNotExist
     ActiveWorkbook.ActiveSheet.rows(1).Find(strColName).Select
@@ -69,13 +95,3 @@ Sub SaveQlikviewReport()
     
     Call GenericVersionSave(saveDir, saveBaseName, saveExt)
 End Sub
-Sub aaToDate()
-'
-' aaToDate Macro
-'
-
-'
-    Columns("O:O").Select
-End Sub
-
-

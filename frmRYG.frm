@@ -20,8 +20,27 @@ Dim iClrG As Long
 Dim iClrY As Long
 Dim iClrR As Long
 
+Private Sub DefaultColors()
+    iHeatClrG = RGB(99, 190, 123)
+    iHeatClrY = RGB(255, 235, 132)
+    iHeatClrR = RGB(248, 105, 107)
+    btnG.BackColor = iHeatClrG
+    btnY.BackColor = iHeatClrY
+    btnR.BackColor = iHeatClrR
+    txtG.Text = CStr(iValG)
+    txtY.Text = CStr(iValY)
+    txtR.Text = CStr(iValR)
+End Sub
 Private Sub btnCancel_Click()
+    giFrmRYGReturn = 0
     Unload Me
+    ' try this to retain globals
+    'me.hide
+    ' use these commands
+    ' form.show
+    ' and may have to add an emtpy sub
+    ' private sub form_terminate()
+    ' end sub
 End Sub
 Private Function fcnColor(clrIn) As Long
     Dim clrR As Integer
@@ -40,19 +59,18 @@ Private Function fcnColor(clrIn) As Long
     fcnColor = clrIn
 End Function
 
-Private Sub btnDefault_Click()
+Private Sub btnDefaultTeams_Click()
     iValG = 2
     iValY = 3
     iValR = 4
-    iHeatClrG = RGB(99, 190, 123)
-    iHeatClrY = RGB(2255, 235, 132)
-    iHeatClrR = RGB(248, 105, 107)
-    btnG.BackColor = iClrG
-    btnY.BackColor = iClrY
-    btnR.BackColor = iClrR
-    txtG.Text = CStr(iValG)
-    txtY.Text = CStr(iValY)
-    txtR.Text = CStr(iValR)
+    DefaultColors
+End Sub
+
+Private Sub btnDefaultOrg_Click()
+    iValG = 1
+    iValY = 1.5
+    iValR = 2
+    DefaultColors
 End Sub
 
 Private Sub btnG_Click()
