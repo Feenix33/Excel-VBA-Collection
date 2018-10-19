@@ -36,7 +36,7 @@ Fini:
 End Sub
 Sub cmeFilterOnValue()
 Attribute cmeFilterOnValue.VB_ProcData.VB_Invoke_Func = "l\n14"
-    If Selection.rows.Count > 1 Then Exit Sub
+    If Selection.Rows.Count > 1 Then Exit Sub
     If Selection.Columns.Count > 1 Then Exit Sub
     Range(ActiveCell.CurrentRegion.Address).AutoFilter Field:=ActiveCell.Column, Criteria1:=ActiveCell.Value
 End Sub
@@ -111,6 +111,11 @@ Function ProcessSheetName(inputSheetName As String) As String
     pos = InStr(LCase(newSheetName), ">an")
     If pos > 0 Then
        newSheetName = Left(newSheetName, pos - 1) + "Analysis" + Right(newSheetName, Len(newSheetName) - pos - 2)
+    End If
+    
+    pos = InStr(LCase(newSheetName), ">m")
+    If pos > 0 Then
+       newSheetName = Left(newSheetName, pos - 1) + "Milestone" + Right(newSheetName, Len(newSheetName) - pos - 2)
     End If
     
     ProcessSheetName = CheckSheetName(newSheetName)
@@ -230,7 +235,7 @@ AnyPFs = False
   Application.Calculation = xlCalculationManual
 
 'Cycle through first row of selected cells
-  For Each cell In Selection.rows(1).Cells
+  For Each cell In Selection.Rows(1).Cells
     On Error Resume Next
       Set pf = cell.PivotField
     On Error GoTo 0
@@ -238,9 +243,6 @@ AnyPFs = False
     If Not pf Is Nothing Then
       'Toggle between Counting and Summing
         pf.Function = xlCount + xlSum - pf.Function
-      
-      'Format Numbers with Custom Rule
-        pf.NumberFormat = "#,##0_);(#,##0);-"
       
       'No need for error message
         AnyPFs = True
@@ -266,7 +268,7 @@ Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
     
     'If the selection is in a table and one row height
         
-    If Not Selection.ListObject Is Nothing And Selection.rows.Count = 1 Then
+    If Not Selection.ListObject Is Nothing And Selection.Rows.Count = 1 Then
         Set tableObj = ActiveSheet.ListObjects(Selection.ListObject.Name)
         
         i = 1
@@ -611,7 +613,7 @@ Function cmeMagicPivotStyle() As String
         cmeMagicPivotStyle = "PivotStyleDark" & (iStyle - 28)
     End If
 End Function
-Sub RallyReportPreparation()
+Sub MagicTablePreparation()
     Dim tbl As ListObject
     Dim rng As Range
     Dim arrMagicChange As Variant
@@ -626,9 +628,9 @@ Sub RallyReportPreparation()
     
     Range("A1").Select
     cmeAutoLimitProcess (60) ' resize the sheet
-    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrMagicChange, 0)) Then
-        ActiveSheet.Name = ProcessSheetName(">d") ' name the sheet for today
-    End If
+'    If IsNumeric(Application.Match(LCase(Left(ActiveSheet.Name, 5)), arrMagicChange, 0)) Then
+'        ActiveSheet.Name = ProcessSheetName(">d") ' name the sheet for today
+'    End If
 End Sub
 Sub cmeWIPTable()
     Dim objTable As PivotTable
@@ -788,7 +790,7 @@ Sub Combine()
         Selection.CurrentRegion.Select ' select all cells in this sheets
 
         ' select all lines except title
-        Selection.Offset(1, 0).Resize(Selection.rows.Count - 1).Select
+        Selection.Offset(1, 0).Resize(Selection.Rows.Count - 1).Select
 
         ' copy cells selected in the new sheet on last line
         Selection.Copy Destination:=Sheets(1).Range("A65536").End(xlUp)(2)
@@ -798,7 +800,7 @@ End Sub
 Sub cmeFmtFocus()
     Dim rngGrid As Range
     With ActiveSheet.UsedRange
-        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.rows.Count - 1, .Columns.Count - 1))
+        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.Rows.Count - 1, .Columns.Count - 1))
         rngGrid.Select
     End With
     
@@ -842,7 +844,7 @@ Sub cmeTabulateImportData()
         TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=True, Tab:=True, _
         Semicolon:=True, Comma:=True, Space:=True, Other:=False, FieldInfo:= _
         Array(Array(1, 1), Array(2, 1), Array(3, 1)), TrailingMinusNumbers:=True
-    rows("1:1").Select
+    Rows("1:1").Select
     Selection.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     Range("A1").Select
     ActiveCell.FormulaR1C1 = "TF.ID"
@@ -906,7 +908,7 @@ Sub cmeFmtThreeColor()
     End If
     Dim rngGrid As Range
     With ActiveSheet.UsedRange
-        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.rows.Count - 1, .Columns.Count - 1))
+        Set rngGrid = Range(.Cells(2, 2), .Cells(1, 1).Offset(.Rows.Count - 1, .Columns.Count - 1))
         rngGrid.Select
     End With
     frmRYG.Show
@@ -946,93 +948,36 @@ Sub CombineWithNames()
         Selection.CurrentRegion.Select ' select all cells in this sheets
 
         ' select all lines except title
-        Selection.Offset(1, 0).Resize(Selection.rows.Count - 1).Select
+        Selection.Offset(1, 0).Resize(Selection.Rows.Count - 1).Select
 
         ' copy cells selected in the new sheet on last line
         Selection.Copy Destination:=Sheets(1).Range("A65536").End(xlUp)(2)
     Next
 End Sub
-Attribute VB_Name = "Module1"
-Sub AddName()
-Attribute AddName.VB_ProcData.VB_Invoke_Func = " \n14"
-    Selection.End(xlUp).Select
-    Selection.End(xlToRight).Select
-    Range("E1").Select
-    Selection.FormulaR1C1 = "SheetName"
-    Range("D1").Select
-    Selection.End(xlDown).Select
-    Range("E9").Select
-    Range(Selection, Selection.End(xlUp)).Select
-    Range("E2:E9").Select
-    Range("E9").Activate
-    Selection.FormulaR1C1 = "Sheet1"
-End Sub
-Sub Macro2()
-Attribute Macro2.VB_ProcData.VB_Invoke_Func = " \n14"
-    Range("E1").Select
-    ActiveCell.FormulaR1C1 = "SheetName"
-    Range("E2").Select
-    Range(Selection, Selection.End(xlDown)).Select
-    ActiveCell.FormulaR1C1 = "Sheet1 (4)"
-    Range("Table2[SheetName]").Select
-    Range("E3").Activate
-    Selection.FormulaR1C1 = "Sheet1 (4)"
-End Sub
-Sub aMacro()
-    MsgBox "I am " + ActiveSheet.Name
-End Sub
-Sub bMacro()
-    Dim lastColumn As Long
-    lastColumn = ActiveSheet.Range("A1").SpecialCells(xlCellTypeLastCell).Column
-    Columns(lastColumn).Copy Destination:=Columns(lastColumn + 1)
-End Sub
-Sub cMacro()
-    If IsActiveCellInTable Then
-        MsgBox "True"
+Sub cmeVerticalText()
+' cmeVerticalText Macro
+    If Selection.Orientation = -4128 Then
+        Selection.Orientation = 90
     Else
-        MsgBox "False"
+        Selection.Orientation = 0
     End If
 End Sub
-Function IsActiveCellInTable() As Boolean
-
-  'Function returns true if active cell is in a table and
-  'false if it isn't.
-    Dim rngActiveCell
-    Set rngActiveCell = ActiveCell
-    Debug.Print IsActiveCellInTable
-    'Test for table.
-    'Statement produces error when active cell is not
-    'in a table.
-    On Error Resume Next
-    rngActiveCell = (rngActiveCell.ListObject.Name <> "")
-    'On Error GoTo 0
+Sub cmeOneDigit()
+' cmeOneDigit Macro
     On Error GoTo Fini
-    'Set function's return value.
-    IsActiveCellInTable = rngActiveCell
-    Return
-Fini:
-    IsActiveCellInTable = False
-End Function
-Sub AddSheetColumn()
-    Range("A1").Select
-    If Not IsActiveCellInTable Then
-      Dim tbl As ListObject
-      Dim rng As Range
+    Dim myDigit As Integer
     
-      Set rng = Range(Range("A1"), Range("A1").SpecialCells(xlLastCell))
-      Set tbl = ActiveSheet.ListObjects.Add(xlSrcRange, rng, , xlYes)
+    myDigit = 1
+    myDigit = Int(InputBox("Number of Digits", "User Input", 1))
+    If myDigit = 1 Then
+        Selection.NumberFormat = "0.0"
+    ElseIf myDigit = 3 Then
+        Selection.NumberFormat = "0.000"
+    ElseIf myDigit = 0 Then
+        Selection.NumberFormat = "0"
+    Else
+        Selection.NumberFormat = "0.00"
     End If
-    
-    Dim strActiveTable As String
-    Dim ptrTable As ListObject
-    
-    strActiveTable = ActiveCell.ListObject.Name
-    
-    If HeaderExists(strActiveTable, "Sheet.Name") = True Then Exit Sub
-    
-    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
-    ptrTable.ListColumns.Add
-    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Sheet.Name"
-    ptrTable.ListColumns("Sheet.Name").DataBodyRange.FormulaR1C1 = ActiveSheet.Name
 Fini:
 End Sub
+
