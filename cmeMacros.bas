@@ -734,10 +734,28 @@ AltName:
     On Error GoTo Fini
 Fini:
 End Sub
+Sub cmeAddRallyFEAture()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    Const cstrColumnName As String = "FEAture"
+        
+    strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, cstrColumnName) = True Then Exit Sub
+    
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = cstrColumnName
+    On Error GoTo Fini
+        ptrTable.ListColumns(cstrColumnName).DataBodyRange.FormulaR1C1 = _
+        "=[@[TeamFeature.Parent.FormattedID]]&"" ""&[@[TeamFeature.Parent.Name]]"
+Fini:
+End Sub
 Sub cmeAddRallyExtras()
     cmeAddRallyType
     cmeAddRallyDone
     cmeAddRallyIterSort
+    cmeAddRallyFEAture
 End Sub
 Sub cmeUniqueCount()
 '
