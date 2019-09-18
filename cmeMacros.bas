@@ -231,7 +231,8 @@ Dim AnyPFs As Boolean
 Dim cell As Range
 
 AnyPFs = False
-
+  On Error GoTo ErrorHandler
+  
 'Optimize Code
   Application.ScreenUpdating = False
   Application.Calculation = xlCalculationManual
@@ -257,10 +258,10 @@ AnyPFs = False
 'Did user select cells inside a Pivot Field?
   If AnyPFs = False Then MsgBox "There were no cells inside a Pivot Field selected."
 
+ErrorHandler:
 'Optimize Code
   Application.Calculation = xlCalculationAutomatic
   Application.ScreenUpdating = True
-
 End Sub
 Sub combinationFilter()
 Attribute combinationFilter.VB_ProcData.VB_Invoke_Func = "l\n14"
@@ -761,13 +762,13 @@ Sub cmeUniqueCount()
 '
 ' cmeUniqueCount Macro
 '
-
-'
+    On Error GoTo ErrorHandler
     With ActiveSheet.PivotTables("PivotTable1").PivotFields( _
         "[Measures].[Count of FEA.ID]")
         .Caption = "Distinct Count of FEA.ID"
         .Function = xlDistinctCount
     End With
+ErrorHandler:
 End Sub
 Public Function HeaderExists(TableName As String, HeaderName As String) As Boolean
 'PURPOSE: Output a true value if column name exists in specified table
@@ -984,31 +985,38 @@ Sub cmeVerticalText()
     Selection.HorizontalAlignment = xlCenter
     Selection.VerticalAlignment = xlCenter
 End Sub
-Sub cmeOneDigit()
-' cmeOneDigit Macro
-    On Error GoTo Fini
-    Dim myDigit As Integer
-    Dim numFormat As String
+Sub cmeNewFormat()
+    Dim newFormat As String
     Dim isPercent As Boolean
     
-    myDigit = 1
-    myDigit = Int(InputBox("Number of Digits", "User Input", 1))
-    numFormat = Selection.NumberFormat
+    newFormat = InputBox("Enter new format", "0 0.0 0%", 0#)
     
-    If Right(numFormat, 1) = "%" Then isPercent = True Else isPercent = False
-    Select Case myDigit
-    Case 0
-        Selection.NumberFormat = "0"
-    Case 1
-        Selection.NumberFormat = "0.0"
-    Case 3
-        Selection.NumberFormat = "0.000"
-    Case Else
-        Selection.NumberFormat = "0.00"
+    If newFormat = "" Then
+        Selection.NumberFormat = "General"
+    ElseIf Right(newFormat, 1) = "%" Or LCase(Right(newFormat, 1)) = "p" Then
+        isPercent = True
+        newFormat = Left(newFormat, Len(newFormat) - 1)
+    End If
+    
+    Select Case newFormat
+    Case "1"
+        newFormat = "0.0"
+    Case "2"
+        newFormat = "0.00"
     End Select
-    
-    If isPercent Then Selection.NumberFormat = Selection.NumberFormat + "%"
-Fini:
+    If isPercent Then
+        If newFormat = "" Then
+            newFormat = "0.0%"
+        Else
+            newFormat = newFormat + "%"
+        End If
+    End If
+    Selection.NumberFormat = newFormat
+    If newFormat = "" Then
+        Selection.NumberFormat = "General"
+    Else
+        Selection.NumberFormat = newFormat
+    End If
 End Sub
 Sub cmeSetDefaultStyles()
     Dim aTable
