@@ -664,19 +664,21 @@ Sub cmeAddRallyType()
     Dim strActiveTable As String
     Dim ptrTable As ListObject
     
+    On Error GoTo Fini
     strActiveTable = ActiveCell.ListObject.Name
     
     If HeaderExists(strActiveTable, "Type") = True Then Exit Sub
+    If HeaderExists(strActiveTable, "Artifact Type") = True Then Exit Sub
     
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
     ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = "Type"
-    On Error GoTo AltName
+    
+    If HeaderExists(strActiveTable, "Formatted ID") Then
         ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[Formatted ID]],2)"
-        Exit Sub
-AltName:
-    On Error GoTo Fini
+    ElseIf HeaderExists(strActiveTable, "FormattedID") Then
         ptrTable.ListColumns("Type").DataBodyRange.FormulaR1C1 = "=LEFT([@[FormattedID]],2)"
+    End If
 Fini:
 End Sub
 Sub cmeAddRallyDone()
@@ -686,6 +688,8 @@ Sub cmeAddRallyDone()
     strActiveTable = ActiveCell.ListObject.Name
     
     If HeaderExists(strActiveTable, "Done") = True Then Exit Sub
+    If (HeaderExists(strActiveTable, "ScheduleState") Or HeaderExists(strActiveTable, "Schedule State")) = False Then Exit Sub
+    
     
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
     ptrTable.ListColumns.Add
@@ -742,6 +746,8 @@ Sub cmeAddRallyFEAture()
         
     strActiveTable = ActiveCell.ListObject.Name
     
+    If HeaderExists(strActiveTable, "TeamFeature.Parent.FormattedID") = False Then Exit Sub
+    If HeaderExists(strActiveTable, "TeamFeature.Parent.Name") = False Then Exit Sub
     If HeaderExists(strActiveTable, cstrColumnName) = True Then Exit Sub
     
     Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
@@ -752,11 +758,30 @@ Sub cmeAddRallyFEAture()
         "=[@[TeamFeature.Parent.FormattedID]]&"" ""&[@[TeamFeature.Parent.Name]]"
 Fini:
 End Sub
+Sub cmeAddRallyTFID()
+    Dim strActiveTable As String
+    Dim ptrTable As ListObject
+    Const cstrColumnName As String = "TF.ID"
+        
+    strActiveTable = ActiveCell.ListObject.Name
+    
+    If HeaderExists(strActiveTable, "Team Feature") = False Then Exit Sub
+    If HeaderExists(strActiveTable, cstrColumnName) = True Then Exit Sub
+    
+    Set ptrTable = ActiveSheet.ListObjects(strActiveTable)
+    ptrTable.ListColumns.Add
+    ptrTable.ListColumns(ptrTable.ListColumns.Count).Name = cstrColumnName
+    On Error GoTo Fini
+        ptrTable.ListColumns(cstrColumnName).DataBodyRange.FormulaR1C1 = _
+        "=MID([@[Team Feature]],14,FIND("":"",[@[Team Feature]])-14)"
+Fini:
+End Sub
 Sub cmeAddRallyExtras()
     cmeAddRallyType
     cmeAddRallyDone
     cmeAddRallyIterSort
     cmeAddRallyFEAture
+    cmeAddRallyTFID
 End Sub
 Sub cmeUniqueCount()
 '
